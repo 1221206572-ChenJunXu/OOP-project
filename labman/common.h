@@ -17,10 +17,13 @@ extern char logintype;
 extern bool login;
 extern Customer loginUser;
 
+
+class FileManager;
 //Customer
 class Customer{
 	
 private:
+public:
 	string username;
 	string email;
 	string phone;
@@ -51,8 +54,9 @@ public:
         cout << "Customer::Customer(const Customer&)" << endl;
     }
 	
-    friend void LoadCustomerFile(vector<Customer>& customerList);
-    friend void SaveCustomerFile(vector<Customer>& customerList);
+	friend class FileManager;
+//    friend void LoadCustomerFile(vector<Customer>& customerList);
+//    friend void SaveCustomerFile(vector<Customer>& customerList);
     
     
     string getusername() const{ return username;	}
@@ -71,9 +75,28 @@ public:
     
 };
 
+class CustomerManager{
+private:
+	vector<Customer>& customerList;
 
+public:
+//	void LoadCustomerFile(vector<Customer>& customerList);
+	CustomerManager(vector<Customer>& customers) : customerList(customers) {}
+	void CustomerLogin(char& logintype);
+	void AccRegister();
+	void AccLogin();
+	bool checkDuplication(const string& register_attr, const string& check_type);
+	void printCustomerList();
+};
+
+class FileManager{
+public:
+	void LoadCustomerFile(vector<Customer>& customerList);
+	void SaveCustomerFile(vector<Customer>& customerList);
+	
+};
 //Read from file
-void LoadCustomerFile(vector<Customer>& customerList);
+//void LoadCustomerFile(vector<Customer>& customerList);
 
 //Index Menu show;
 void ShowIndexMenu();
@@ -81,16 +104,10 @@ void ShowIndexMenu();
 
 //Read menu selection
 char readMenuSelection(int options);
+bool checkEmptyInput(const string& check_input);
 
 
-void CustomerLogin(vector<Customer>& customerList, char& logintype);
 
-void AccRegister(vector<Customer>& customerList);
-bool checkDuplication(const vector<Customer>& customerList, const string& register_attr, const string& check_type);
-bool checkEmptyInput(const string& register_attr);
-
-
-void AccLogin(vector<Customer>& customerList);
 
 
 

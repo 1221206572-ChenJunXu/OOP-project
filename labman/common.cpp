@@ -12,9 +12,9 @@ bool login = false;
 Customer loginUser;
 //Read from file
 
-void LoadCustomerFile(vector<Customer>& customerList){
+void FileManager::LoadCustomerFile(vector<Customer>& customerList){
 	ifstream checkFile(CUSTOMERFILE);
-	
+	cout << "Loading File..." << endl;
 	if (!checkFile.is_open()) {
         cout << "Error: Could not open customer file!" << endl;
         return;
@@ -46,21 +46,28 @@ void LoadCustomerFile(vector<Customer>& customerList){
 	checkFile.close();
 }
 
+//void CustomerManager::LoadCustomerFile(vector<Customer>& ccustomerList){
+//	customerList = move(ccustomerList);
+//}
 
-
-void SaveCustomerFile(vector<Customer>& customerList){
+void FileManager::SaveCustomerFile(vector<Customer>& customerList){
 	ofstream saveFile(CUSTOMERFILE);
-	
+	cout << "Saving File..." << endl;
 	if (!saveFile.is_open()) {
         cout << "Error: Could not open customer file!" << endl;
         return;
     }
-    
+    if (customerList.empty()) {
+        cout << "Error: Customer list is empty. Nothing to save!" << endl;
+        return;
+    }
 	for(const auto& customer : customerList){
+		cout << customer.username << "|" << customer.email << "|" << customer.phone << "|" << customer.password
+		<< "|" << customer.securekey << "|" << customer.secureans << endl;
 		saveFile << customer.username << "|" << customer.email << "|" << customer.phone << "|" << customer.password
 		<< "|" << customer.securekey << "|" << customer.secureans << endl;
 	}
-	
+	cout << "All data Saved..." << endl;
 	saveFile.close();
 }
 
@@ -96,10 +103,18 @@ char readMenuSelection(int options){
 
 
 
+bool checkEmptyInput(const string& check_input){
+	cout << "checkEmptyInput()" << endl;
+	return check_input.empty();
+}
 
 
 
-void CustomerLogin(vector<Customer>& customerList, char& logintype){
+
+
+
+
+void CustomerManager::CustomerLogin(char& logintype){
 	
 	bool quit = false;
 	while(!quit)
@@ -111,12 +126,12 @@ void CustomerLogin(vector<Customer>& customerList, char& logintype){
 		case '1':
 			logintype = '1';
 			cout << "Register..." << endl;
-			AccRegister(customerList);
+			AccRegister();
 			break;
 		case '2':
 			logintype = '2';
 			cout << "Login..." << endl;
-			AccLogin(customerList);
+			AccLogin();
 			cout << "Book Content Blabla";
 			break;
 			quit = true;
@@ -127,7 +142,7 @@ void CustomerLogin(vector<Customer>& customerList, char& logintype){
 	
 }
 
-void AccLogin(vector<Customer>& customerList){
+void CustomerManager::AccLogin(){
 	
 	Customer logincus1;
 	string login_attr, login_attr2;
@@ -335,7 +350,7 @@ void AccLogin(vector<Customer>& customerList){
 	
 }
 
-void AccRegister(vector<Customer>& customerList){
+void CustomerManager::AccRegister(){
 	
 	Customer registercus1;
 	string register_attr,register_attr2;
@@ -346,7 +361,7 @@ void AccRegister(vector<Customer>& customerList){
 	while(true)
 	{	
 		getline(cin, register_attr);
-		if(checkDuplication(customerList, register_attr,"check_name")){
+		if(checkDuplication(register_attr,"check_name")){
 			cout << "already exist... Please change another username : ";
 		}
 		else{
@@ -370,7 +385,7 @@ void AccRegister(vector<Customer>& customerList){
 	while(true)
 	{	
 		getline(cin, register_attr);
-		if(checkDuplication(customerList, register_attr,"check_email")){
+		if(checkDuplication(register_attr,"check_email")){
 			cout << "already exist... Please change another Email : " << endl;
 		}
 		else{
@@ -393,7 +408,7 @@ void AccRegister(vector<Customer>& customerList){
 	while(true)
 	{	
 		getline(cin, register_attr);
-		if(checkDuplication(customerList, register_attr,"check_phone")){
+		if(checkDuplication(register_attr,"check_phone")){
 			cout << "already exist... Please change another phone : " << endl;
 		}
 		else{
@@ -488,15 +503,7 @@ void AccRegister(vector<Customer>& customerList){
 	customerList.push_back(registercus1);
 }
 
-
-bool checkEmptyInput(const string& register_attr){
-	cout << "checkEmptyInput()" << endl;
-	return register_attr.empty();
-}
-
-
-bool checkDuplication(const vector<Customer>& customerList, const string& register_attr, const string& check_type)
-{
+bool CustomerManager::checkDuplication(const string& register_attr, const string& check_type){
 	cout << "checkDuplication():" << endl;
 	cout << register_attr << endl;
 	
@@ -545,3 +552,10 @@ bool checkDuplication(const vector<Customer>& customerList, const string& regist
     return false;
 }
 
+void CustomerManager::printCustomerList(){
+	cout << "CustomerManager::printCustomerList()" << endl;
+	for(const auto& customer : customerList){
+	cout << customer.getusername() << "|" << customer.getemail() << "|" << customer.getphone() << "|" << customer.getpassword()
+	<< "|" << customer.getsecurekey() << "|" << customer.getsecureans() << endl;
+	}
+}

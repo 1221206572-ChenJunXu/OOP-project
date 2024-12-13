@@ -12,15 +12,22 @@ int main(int argc, char** argv) {
 	bool quit = false;
 	vector<Customer> customerList;
 	
-	LoadCustomerFile(customerList);
+	FileManager fileManager;
+	fileManager.LoadCustomerFile(customerList);
 	
-	CustomerLogin(customerList, logintype);
+	CustomerManager customerManager(customerList);
+//	customerManager.LoadCustomerFile(customerList);
+	customerManager.CustomerLogin(logintype);
 	
 	
 	
 	cout << loginUser.getusername() << " is the login user!" << endl;
 	
-	SaveCustomerFile(customerList);
+//	if (customerList.empty()) {
+//        cout << "Main Error: Customer list is empty. Nothing to save!" << endl;
+//    }
+	fileManager.SaveCustomerFile(customerList);
+//	customerManager.printCustomerList();
 	
 	cout << "bye"<< endl;
 	return 0;
