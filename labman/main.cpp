@@ -11,14 +11,17 @@ int main(int argc, char** argv) {
 	
 	bool quit = false;
 	vector<Customer> customerList;
+	vector<Staff> staffList;
 	
 	FileManager fileManager;
+	
 	fileManager.LoadCustomerFile(customerList);
+	fileManager.LoadStaffFile(staffList);
 	
 	CustomerManager customerManager(customerList);
-//	customerManager.LoadCustomerFile(customerList);
-	customerManager.CustomerLogin(logintype);
+	StaffManager staffManager(staffList);
 	
+	customerManager.CustomerLogin();
 	
 	
 	cout << loginUser.getusername() << " is the login user!" << endl;

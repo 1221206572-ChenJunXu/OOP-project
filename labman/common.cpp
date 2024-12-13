@@ -7,9 +7,9 @@
 #include "common.h"
 
 
-char logintype = {};
+bool isCustomer = true;
 bool login = false;
-Customer loginUser;
+User loginUser;
 //Read from file
 
 void FileManager::LoadCustomerFile(vector<Customer>& customerList){
@@ -26,9 +26,9 @@ void FileManager::LoadCustomerFile(vector<Customer>& customerList){
 	while(getline(checkFile,line)){
 		stringstream ss(line);
 		getline(ss,custmp.username,'|');
+		getline(ss,custmp.password,'|');
 		getline(ss,custmp.email,'|');
 		getline(ss,custmp.phone,'|');
-		getline(ss,custmp.password,'|');
 		getline(ss,tmp,'|');
 		custmp.securekey = tmp[0];
 		getline(ss,custmp.secureans,'|');
@@ -39,7 +39,7 @@ void FileManager::LoadCustomerFile(vector<Customer>& customerList){
 	}
 	
 	for(const auto& customer : customerList){
-		cout << customer.username << "," << customer.email << "," << customer.phone << "," << customer.password
+		cout << customer.username << "," << customer.password << "," << customer.email << "," << customer.phone
 		<< "," << customer.securekey << "," << customer.secureans << endl;
 	}
 	
@@ -62,10 +62,64 @@ void FileManager::SaveCustomerFile(vector<Customer>& customerList){
         return;
     }
 	for(const auto& customer : customerList){
-		cout << customer.username << "|" << customer.email << "|" << customer.phone << "|" << customer.password
+		cout << customer.username << "|" << customer.password << "|" << customer.email << "|" << customer.phone
 		<< "|" << customer.securekey << "|" << customer.secureans << endl;
-		saveFile << customer.username << "|" << customer.email << "|" << customer.phone << "|" << customer.password
+		saveFile << customer.username << "|" << customer.password << "|" << customer.email << "|" << customer.phone
 		<< "|" << customer.securekey << "|" << customer.secureans << endl;
+	}
+	cout << "All data Saved..." << endl;
+	saveFile.close();
+}
+
+
+
+
+//staff file
+void FileManager::LoadStaffFile(vector<Staff>& staffList){
+	ifstream checkFile(STAFFFILE);
+	cout << "Loading File..." << endl;
+	if (!checkFile.is_open()) {
+        cout << "Error: Could not open staff file!" << endl;
+        return;
+    }
+	
+	string tmp;
+	Staff stafftmp;
+	string line;
+	while(getline(checkFile,line)){
+		stringstream ss(line);
+		getline(ss,stafftmp.username,'|');
+		getline(ss,stafftmp.password,'|');
+		
+		
+		staffList.push_back(stafftmp);
+
+	}
+	
+	for(const auto& staff : staffList){
+		cout << staff.username << "," << staff.password << endl;
+	}
+	
+	checkFile.close();
+}
+
+//void CustomerManager::LoadCustomerFile(vector<Customer>& ccustomerList){
+//	customerList = move(ccustomerList);
+//}
+
+void FileManager::SaveStaffFile(vector<Staff>& staffList){
+	ofstream saveFile(STAFFFILE);
+	cout << "Saving File..." << endl;
+	if (!saveFile.is_open()) {
+        cout << "Error: Could not open staff file!" << endl;
+        return;
+    }
+    if (staffList.empty()) {
+        cout << "Error: Customer list is empty. Nothing to save!" << endl;
+        return;
+    }
+	for(const auto& staff : staffList){
+		cout << staff.username << "|" << staff.password << endl;
 	}
 	cout << "All data Saved..." << endl;
 	saveFile.close();
@@ -114,7 +168,7 @@ bool checkEmptyInput(const string& check_input){
 
 
 
-void CustomerManager::CustomerLogin(char& logintype){
+void CustomerManager::CustomerLogin(){
 	
 	bool quit = false;
 	while(!quit)
@@ -124,14 +178,13 @@ void CustomerManager::CustomerLogin(char& logintype){
 		switch(key)
 		{
 		case '1':
-			logintype = '1';
 			cout << "Register..." << endl;
 			AccRegister();
 			break;
 		case '2':
-			logintype = '2';
 			cout << "Login..." << endl;
 			AccLogin();
+			printCustomerList();
 			cout << "Book Content Blabla";
 			break;
 			quit = true;
@@ -145,6 +198,14 @@ void CustomerManager::CustomerLogin(char& logintype){
 void CustomerManager::AccLogin(){
 	
 	Customer logincus1;
+	Staff loginstaff1;
+	
+	vector<Staff> staffList;
+	FileManager fileManager;
+	fileManager.LoadStaffFile(staffList);
+	StaffManager staffManager(staffList);
+	
+	
 	string login_attr, login_attr2;
 	int wrong_count = 0;
 	bool found_acc = false;
@@ -169,6 +230,14 @@ void CustomerManager::AccLogin(){
 					if(login_attr == customer.getusername()){
 						found_acc = true;
 						logincus1 = customer;
+						break;
+					}
+				}
+				for(const auto& staff : staffList)
+				{
+					if(login_attr == staff.getusername()){
+						found_acc = true;
+						loginstaff1 = staff;
 						break;
 					}
 				}
@@ -198,8 +267,18 @@ void CustomerManager::AccLogin(){
 						loginUser = logincus1;
 						quit = true;
 //						login = true;
+						isCustomer = true;
 						break;
 					}
+					if(loginstaff1.getpassword() == login_attr2){
+						cout << "Welcome back" << loginstaff1.getusername() << " !" << endl;
+						loginUser = loginstaff1;
+						quit = true;
+						isCustomer = false;
+//						login = true;
+						break;
+					}
+					
 					else{
 						cout << "Wrong Password. Please try again !!" << endl;
 						wrong_count++;
@@ -351,8 +430,100 @@ void CustomerManager::AccLogin(){
 }
 
 void CustomerManager::AccRegister(){
+	addCustomer();
+}
+
+bool CustomerManager::checkDuplication(const string& register_attr, const string& check_type){
+	cout << "checkDuplication():" << endl;
+	cout << register_attr << endl;
 	
-	Customer registercus1;
+	if(check_type == "check_name")
+	{
+			
+		
+	    for (const auto& customer : customerList)
+		{
+	        if (customer.getusername() == register_attr)
+			{
+				cout<< "walao" << endl;
+	            return true;
+	        }
+	    }
+	    
+	}
+	else if(check_type == "check_email")
+	{
+		
+	    for (const auto& customer : customerList)
+		{
+	        if (customer.getemail() == register_attr)
+			{
+				cout<< "walao" << endl;
+	            return true;
+	        }
+	    }
+	 
+	}
+	else if(check_type == "check_phone")
+	{
+		
+	    for (const auto& customer : customerList)
+		{
+	        if (customer.getphone() == register_attr)
+			{
+				cout<< "walao" << endl;
+	            return true;
+	        }
+	    }
+	 
+	}
+    
+    cout << "good good" << endl;
+    return false;
+}
+
+void CustomerManager::printCustomerList(){
+	while(true)
+	{
+		
+		cout << "CustomerManager::printCustomerList()" << endl;
+		for(const auto& customer : customerList){
+		cout << customer.getusername() << "|" << customer.getpassword() << "|" << customer.getemail() << "|" << customer.getphone()
+		<< "|" << customer.getsecurekey() << "|" << customer.getsecureans() << endl;
+		}
+		cout << "1. view customer (delete, update)" << endl;
+		cout << "2. add new customer" << endl;
+		cout << "3. previous page" << endl;
+		cout << "4. next page" << endl;
+		cout << "0. back" << endl;
+		char key = readMenuSelection(4);
+			switch(key){
+				case '1':
+					viewCustomer();
+					break;
+				case '2':
+					addCustomer();
+				case '3':
+				case '4':
+				case '0':
+					break;
+				default:
+					cout << "Default" << endl;
+			}
+		if(key == '0') break;
+	}
+	
+	
+}
+
+
+//void printCustomerList();
+//	void delCustomer();
+//	void updateCustomer();
+//	void viewCustomer();
+	
+void CustomerManager::addCustomer(){
+Customer registercus1;
 	string register_attr,register_attr2;
 	
 	
@@ -497,65 +668,132 @@ void CustomerManager::AccRegister(){
 	}
 	
 	
-	cout << registercus1.getusername() << "," << registercus1.getemail() << "," << registercus1.getphone() << "," << registercus1.getpassword()
+	cout << registercus1.getusername() << "," << registercus1.getpassword() << "," << registercus1.getemail() << "," << registercus1.getphone()
 		<< "," << registercus1.getsecurekey() << "," << registercus1.getsecureans() << endl;
 		
 	customerList.push_back(registercus1);
 }
 
-bool CustomerManager::checkDuplication(const string& register_attr, const string& check_type){
-	cout << "checkDuplication():" << endl;
-	cout << register_attr << endl;
-	
-	if(check_type == "check_name")
+
+
+void CustomerManager::viewCustomer(){
+	while(true)
 	{
-			
-		
-	    for (const auto& customer : customerList)
-		{
-	        if (customer.getusername() == register_attr)
-			{
-				cout<< "walao" << endl;
-	            return true;
-	        }
-	    }
-	    
+		cout << endl;
+		cout << "Please Enter No. to view : ";
+		int key = readMenuSelection(9) - '0';;
+		cout << key << endl;
+		key--;
+		cout << key << endl;
+		cout << setw(17) << left << "Username" << ":" << customerList[key].getusername() << endl;
+		cout << setw(17) << left << "Password" << ":" << customerList[key].getpassword() << endl;
+		cout << setw(17) << left << "Email" << ":" << customerList[key].getemail() << endl;
+		cout << setw(17) << left << "Phone" << ":" << customerList[key].getphone() << endl;
+		cout << setw(17) << left << "Securekey" << ":" << customerList[key].getsecurekey() << endl;
+		cout << setw(17) << left << "Securekey answer" << ":" << customerList[key].getsecureans() << endl;
+		cout << endl << endl;
+		cout << "1. Update customer details" << endl;
+		cout << "2. View customer rental status" << endl;
+		cout << "3. View customer rental history" << endl;
+		cout << "4. Delete customer" << endl;
+		cout << "0. Back" << endl;
+		char key2 = readMenuSelection(4);
+		switch(key2){
+			case '1':
+				updateCustomer(key);
+				break;
+			case '2':
+			case '3':
+				break;
+			case '4':
+				delCustomer(key);
+				break;
+			case '0':
+				break;
+			default:
+				cout << "Default" << endl;
+		}
+		break;
 	}
-	else if(check_type == "check_email")
-	{
-		
-	    for (const auto& customer : customerList)
-		{
-	        if (customer.getemail() == register_attr)
-			{
-				cout<< "walao" << endl;
-	            return true;
-	        }
-	    }
-	 
-	}
-	else if(check_type == "check_phone")
-	{
-		
-	    for (const auto& customer : customerList)
-		{
-	        if (customer.getphone() == register_attr)
-			{
-				cout<< "walao" << endl;
-	            return true;
-	        }
-	    }
-	 
-	}
-    
-    cout << "good good" << endl;
-    return false;
 }
 
-void CustomerManager::printCustomerList(){
-	cout << "CustomerManager::printCustomerList()" << endl;
-	for(const auto& customer : customerList){
-	cout << customer.getusername() << "|" << customer.getemail() << "|" << customer.getphone() << "|" << customer.getpassword()
-	<< "|" << customer.getsecurekey() << "|" << customer.getsecureans() << endl;
+
+void CustomerManager::updateCustomer(const int& key){
+	string yorn;
+	while(true)
+	{
+		cout << "Are you sure to update? [Y/N] : ";
+		getline(cin,yorn);
+		if(yorn == "Y" || yorn == "y")
+		{
+			cout << "Which attribute would you like to Edit ?" << endl;
+			cout << "Enter the number: ";
+			char key2 = readMenuSelection(6);
+			while(true)
+			{
+				string change_attribute;
+				cout << "Change to : ";
+				fflush(stdin);
+				getline(cin, change_attribute);
+			//empty check
+				if(checkEmptyInput(change_attribute))
+				{
+					cout << "Please Enter properly !" << endl;
+					continue;
+				}
+			//duplication check
+				if(key2 == '1')
+				{
+					if(checkDuplication(change_attribute,"check_name")){
+						cout << "already exist... Please change another Name : " << endl; continue;
+					}
+				}
+				else if(key2 == '3')
+				{
+					if(checkDuplication(change_attribute,"check_email")){
+						cout << "already exist... Please change another Email : " << endl; continue;
+					}
+				}
+				else if(key2 == '4')
+				{
+					if(checkDuplication(change_attribute,"check_phone")){
+						cout << "already exist... Please change another Phone : " << endl; continue;
+					}
+				}
+				
+			//Update attribute
+				switch(key2)
+				{
+					case '1': customerList[key].setusername(change_attribute); break;
+					case '2': customerList[key].setpassword(change_attribute); break;
+					case '3': customerList[key].setemail(change_attribute); break;
+					case '4': customerList[key].setphone(change_attribute); break;
+					case '5': customerList[key].setsecurekey(change_attribute[0]); break;
+					case '6': customerList[key].setsecureans(change_attribute); break;
+				}
+				
+				cout << "Done Changed Attribute!" << endl;
+				break;
+			}
+			break;
+		}
+		else if(yorn == "N" || yorn == "n")	break;
+		else cout << "Wrong Input. Please try again!" << endl;
+	}
+}
+void CustomerManager::delCustomer(const int& key){
+	while(true)
+	{
+		string yorn;
+		cout << "Are you really sure to delete the user ? [Y/N]";
+			getline(cin,yorn);
+		if(yorn == "Y" || yorn == "y")
+		{
+			customerList.erase(customerList.begin()+key);
+			cout << "The user have been deleted..." << endl;
+			break;
+		}
+		else if(yorn == "N" || yorn == "n")	break;
+		else cout << "Wrong Input. Please try again!" << endl;
 	}
 }
