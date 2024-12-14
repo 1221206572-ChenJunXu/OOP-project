@@ -82,7 +82,7 @@ void FileManager::LoadStaffFile(vector<Staff>& staffList){
         cout << "Error: Could not open staff file!" << endl;
         return;
     }
-	
+
 	string tmp;
 	Staff stafftmp;
 	string line;
@@ -90,12 +90,12 @@ void FileManager::LoadStaffFile(vector<Staff>& staffList){
 		stringstream ss(line);
 		getline(ss,stafftmp.username,'|');
 		getline(ss,stafftmp.password,'|');
-		
-		
+
+
 		staffList.push_back(stafftmp);
 
 	}
-	
+
 	for(const auto& staff : staffList){
 		cout << staff.username << "," << staff.password << endl;
 	}
@@ -125,6 +125,64 @@ void FileManager::SaveStaffFile(vector<Staff>& staffList){
 	saveFile.close();
 }
 
+void FileManager::LoadBookFile(vector<shared_ptr<Book>>& bookList){
+	ifstream checkFile(BOOKFILE);
+	cout << "Loading File..." << endl;
+	if (!checkFile.is_open()) {
+        cout << "Error: Could not open staff file!" << endl;
+        return;
+    }
+
+
+	string line;
+	while(getline(checkFile,line)){
+		stringstream ss(line);
+		string temp;
+        int qty, duration;
+        float price;
+        char type, status;
+        string isbn, name, author, publisher, date, desc;
+		getline(ss, isbn, '|');
+        getline(ss, temp, '|'); type = temp[0];
+        getline(ss, name, '|');
+        getline(ss, author, '|');
+        getline(ss, publisher, '|');
+        getline(ss, date, '|');
+        getline(ss, desc, '|');
+        getline(ss, temp, '|'); price = stof(temp);
+        getline(ss, temp, '|'); qty = stoi(temp);
+        getline(ss, temp, '|'); status = temp[0];
+        getline(ss, temp, '|'); duration = stoi(temp);
+
+		if (duration == 60)
+		{
+            bookList.push_back(make_shared<NewBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
+        }
+		else if (duration == 30)
+		{
+            bookList.push_back(make_shared<SlightlyUsedBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
+        }
+		else if (duration == 14)
+		{
+            bookList.push_back(make_shared<HeavilyUsedBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
+        }
+
+	}
+
+	for (const auto& book : bookList) {
+    cout << book->ISBN << " | " << book->type << " | " << book->name << " | "
+         << book->author << " | " << book->publisher << " | " << book->publishdate
+         << " | " << book->description << " | " << book->rentalprice << " | "
+         << book->quantity << " | " << book->status << " | " << book->maxduration << " days" << endl;
+}
+
+	checkFile.close();
+}
+
+Book::~Book() {
+    cout << "Book::~Book()" << endl;
+}
+
 
 //Index Menu Show
 void ShowIndexMenu(){
@@ -135,6 +193,15 @@ void ShowIndexMenu(){
 	cout << "0. Exit" << endl;
 }
 
+void ShowMainMenu(){
+	cout << "=========================================" << endl;
+	cout << "   Welcome to 2nd book rental Platform" << endl;
+	cout << "=========================================" << endl;
+	cout << "1. Book Browsing" << endl;
+	cout << "2. Rental Status" << endl;
+	cout << "3. Personal Information" << endl;
+	cout << "0. Exit" << endl;
+}
 
 //Read menu selection
 char readMenuSelection(int options){
@@ -165,9 +232,6 @@ bool checkEmptyInput(const string& check_input){
 
 
 
-
-
-
 void CustomerManager::CustomerLogin(){
 	
 	bool quit = false;
@@ -184,10 +248,47 @@ void CustomerManager::CustomerLogin(){
 		case '2':
 			cout << "Login..." << endl;
 			AccLogin();
-			printCustomerList();
-			cout << "Book Content Blabla";
-			break;
+			if(!login) continue;
+
+
+			if(isCustomer)
+			{
+				int customerkey = 0;
+				for(const auto& customer : customerList){
+					if(loginUser.getusername() == customer.getusername()) break;
+					customerkey++;
+				}
+				while(true)
+				{
+					ShowMainMenu();
+					char key2 = readMenuSelection(3);
+//					cout << "1. Book Browsing" << endl;
+//					cout << "2. Rental Status" << endl;
+//					cout << "3. Personal Information" << endl;
+//					cout << "0. Exit" << endl;
+					switch(key2)
+					{
+						case '1':
+						case '2':
+							break;
+						case '3':
+							viewCustomer(customerkey);
+							break;
+						case '0': break;
+						default: cout << "Default" << endl;
+					}
+
+					cout << key2 << endl;
+					if(key2 == '0') break;
+				}
+			}
+			else
+			{
+				printCustomerList();
+				cout << "Book Content Blabla";
+			}
 			quit = true;
+			break;
 		default:
 			quit = true;
 		}
@@ -266,7 +367,7 @@ void CustomerManager::AccLogin(){
 						cout << "Welcome back" << logincus1.getusername() << " !" << endl;
 						loginUser = logincus1;
 						quit = true;
-//						login = true;
+						login = true;
 						isCustomer = true;
 						break;
 					}
@@ -274,6 +375,7 @@ void CustomerManager::AccLogin(){
 						cout << "Welcome back" << loginstaff1.getusername() << " !" << endl;
 						loginUser = loginstaff1;
 						quit = true;
+						login = true;
 						isCustomer = false;
 //						login = true;
 						break;
@@ -497,12 +599,21 @@ void CustomerManager::printCustomerList(){
 		cout << "4. next page" << endl;
 		cout << "0. back" << endl;
 		char key = readMenuSelection(4);
+		int key2 = 0;
+
+
 			switch(key){
 				case '1':
-					viewCustomer();
+					cout << endl;
+					cout << "Please Enter No. to view : ";
+					key2 = readMenuSelection(9) - '0';
+					cout << key2 << endl;
+					key2--;
+					viewCustomer(key2);
 					break;
 				case '2':
 					addCustomer();
+					break;
 				case '3':
 				case '4':
 				case '0':
@@ -635,13 +746,13 @@ Customer registercus1;
 			}
 		}
 	}
-	
-	
+
+
 	cout << "Please Select your Secure Key : ";
 	cout << "1. Where do you live" << endl;
 	cout << "2. How old is your father" << endl;
 	cout << "3. What is your primary school name" << endl;
-	
+
 	char key = readMenuSelection(3);
 	switch(key)
 	{
@@ -649,7 +760,7 @@ Customer registercus1;
 	case '2':
 	case '3':
 		cout << "Please enter your answer : ";
-		
+
 		while(true)
 		{	
 			getline(cin, register_attr);
@@ -667,23 +778,18 @@ Customer registercus1;
 		break;
 	}
 	
-	
+
 	cout << registercus1.getusername() << "," << registercus1.getpassword() << "," << registercus1.getemail() << "," << registercus1.getphone()
 		<< "," << registercus1.getsecurekey() << "," << registercus1.getsecureans() << endl;
-		
+
 	customerList.push_back(registercus1);
 }
 
 
 
-void CustomerManager::viewCustomer(){
+void CustomerManager::viewCustomer(const int& key){
 	while(true)
 	{
-		cout << endl;
-		cout << "Please Enter No. to view : ";
-		int key = readMenuSelection(9) - '0';;
-		cout << key << endl;
-		key--;
 		cout << key << endl;
 		cout << setw(17) << left << "Username" << ":" << customerList[key].getusername() << endl;
 		cout << setw(17) << left << "Password" << ":" << customerList[key].getpassword() << endl;
@@ -692,27 +798,51 @@ void CustomerManager::viewCustomer(){
 		cout << setw(17) << left << "Securekey" << ":" << customerList[key].getsecurekey() << endl;
 		cout << setw(17) << left << "Securekey answer" << ":" << customerList[key].getsecureans() << endl;
 		cout << endl << endl;
-		cout << "1. Update customer details" << endl;
-		cout << "2. View customer rental status" << endl;
-		cout << "3. View customer rental history" << endl;
-		cout << "4. Delete customer" << endl;
-		cout << "0. Back" << endl;
-		char key2 = readMenuSelection(4);
-		switch(key2){
-			case '1':
-				updateCustomer(key);
-				break;
-			case '2':
-			case '3':
-				break;
-			case '4':
-				delCustomer(key);
-				break;
-			case '0':
-				break;
-			default:
-				cout << "Default" << endl;
+		if(isCustomer)
+		{
+			cout << "1. Update Details" << endl;
+			cout << "2. View customer rental history" << endl;
+			cout << "0. Back" << endl;
+
+			char key2 = readMenuSelection(2);
+			switch(key2){
+				case '1':
+					updateCustomer(key);
+					continue;
+				case '2':
+					break;
+				case '0':
+					break;
+				default:
+					cout << "Default" << endl;
+			}
 		}
+		else
+		{
+			cout << "1. Update customer details" << endl;
+			cout << "2. View customer rental status" << endl;
+			cout << "3. View customer rental history" << endl;
+			cout << "4. Delete customer" << endl;
+			cout << "0. Back" << endl;
+
+			char key2 = readMenuSelection(4);
+			switch(key2){
+				case '1':
+					updateCustomer(key);
+					continue;
+				case '2':
+				case '3':
+					break;
+				case '4':
+					delCustomer(key);
+					break;
+				case '0':
+					break;
+				default:
+					cout << "Default" << endl;
+			}
+		}
+
 		break;
 	}
 }
