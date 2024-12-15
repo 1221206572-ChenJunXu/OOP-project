@@ -24,15 +24,14 @@ int main(int argc, char** argv) {
 	BookManager bookManager(bookList);
 
 	bookManager.displayAllBooks();
-	customerManager.CustomerLogin();
-	
+	customerManager.CustomerLogin(staffManager, bookManager);
+
 
 	cout << loginUser.getusername() << " is the login user!" << endl;
 
-//	if (customerList.empty()) {
-//        cout << "Main Error: Customer list is empty. Nothing to save!" << endl;
-//    }
 	fileManager.SaveCustomerFile(customerList);
+	fileManager.SaveStaffFile(staffList);
+	fileManager.SaveBookFile(bookList);
 //	customerManager.printCustomerList();
 	
 	cout << "bye"<< endl;

@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <windows.h>
+#include <conio.h>
 
 //DEFINE FILE NAME
 #define CUSTOMERFILE "./customer.txt"
@@ -22,6 +24,13 @@ class User;
 
 
 class FileManager;
+class User;
+class Customer;
+class CustomerManager;
+class Staff;
+class StaffManager;
+class Book;
+class BookManager;
 
 class User{
 
@@ -40,7 +49,7 @@ public:
 
 //Customer
 class Customer : public User{
-	
+
 private:
 	string email;
 	string phone;
@@ -100,7 +109,7 @@ private:
 public:
 //	void LoadCustomerFile(vector<Customer>& customerList);
 	CustomerManager(vector<Customer>& customers) : customerList(customers) {}
-	void CustomerLogin();
+	void CustomerLogin(StaffManager& staffManager, BookManager& bookManager);
 	void AccRegister();
 	void AccLogin();
 	bool checkDuplication(const string& register_attr, const string& check_type);
@@ -170,21 +179,22 @@ public:
 		cout << "Book::Book(const Book&)" << endl;
 	}
 
-	virtual void display() const {
-        cout << "ISBN: " << ISBN << " "
-             << "Type: " << type << " "
-             << "Name: " << name << " "
-             << "Author: " << author << " "
-             << "Publisher: " << publisher << " "
-             << "Publish Date: " << publishdate << " "
-             << "Description: " << description << " "
-             << "Rental Price: " << rentalprice << " "
-             << "Quantity: " << quantity << " "
-             << "Status: " << status << " "
-             << "Max Duration: " << maxduration << " days" << endl;
+	virtual void display() const;
 
+	void bookBrowsing();
 
-    }
+	string getISBN() { return ISBN;}
+	char gettype() { return type;}
+	string getname() { return name;}
+	string getauthor(){ return author;}
+	string getpublisher() { return publisher;}
+	string getpublishdate() { return publishdate;}
+	string getdescription() { return description;}
+	float getrentalprice(){ return rentalprice;}
+	int getquantity() { return quantity;}
+	char getstatus(){ return status;}
+	int getmaxduration() { return maxduration;}
+
 
 	friend class FileManager;
 
@@ -197,10 +207,7 @@ public:
         : Book(isbn, t, n, a, p, date, desc, price, qty, s, maxDur) {}
     ~NewBook() override {}
 
-    void display() const override {
-        cout << "=== New Book ===" << endl;
-        Book::display();
-    }
+    void display() const override;
 };
 
 class SlightlyUsedBook : public Book{
@@ -210,10 +217,7 @@ public:
         : Book(isbn, t, n, a, p, date, desc, price, qty, s, maxDur) {}
     ~SlightlyUsedBook() override {}
 
-    void display() const override {
-        cout << "=== Slightly Used Book ===" << endl;
-        Book::display();
-    }
+    void display() const override;
 };
 
 class HeavilyUsedBook : public Book{
@@ -223,24 +227,24 @@ public:
         : Book(isbn, t, n, a, p, date, desc, price, qty, s, maxDur) {}
     ~HeavilyUsedBook() override {}
 
-    void display() const override {
-        cout << "=== Heavily Used Book ===" << endl;
-        Book::display();
-    }
+    void display() const override;
 };
 
-class BookManager{
+class BookManager {
 private:
-	vector<shared_ptr<Book>> books;
+    vector<shared_ptr<Book>> bookList;
 public:
-	BookManager(const vector<shared_ptr<Book>>& b): books(b) {}
-	void displayAllBooks() const {
-        cout << "Displaying all books:" << endl;
-        for (const auto& book : books) {
-            book->display();
-            cout << "------------------------" << endl;
-        }
-    }
+    BookManager(const vector<shared_ptr<Book>>& b): bookList(b) {};
+	void displayAllBooks() const{
+	    cout << "Displaying all books:" << endl;
+	    for (const auto& book : bookList) {
+	        book->display();
+	        cout << "------------------------" << endl;
+	    }
+	}
+	void bookBrowsing(int page);
+	int readBookSelection();
+	void viewBook(const int& key);
 };
 
 class FileManager{
@@ -250,11 +254,10 @@ public:
 	void LoadStaffFile(vector<Staff>& staffList);
 	void SaveStaffFile(vector<Staff>& staffList);
 	void LoadBookFile(vector<shared_ptr<Book>>& bookList);
-//	void SaveBookFile(vector<Staff>& staffList);
+	void SaveBookFile(vector<shared_ptr<Book>>& bookList);
 
 };
 //Read from file
-//void LoadCustomerFile(vector<Customer>& customerList);
 
 //Index Menu show;
 void ShowIndexMenu();

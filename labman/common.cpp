@@ -46,9 +46,6 @@ void FileManager::LoadCustomerFile(vector<Customer>& customerList){
 	checkFile.close();
 }
 
-//void CustomerManager::LoadCustomerFile(vector<Customer>& ccustomerList){
-//	customerList = move(ccustomerList);
-//}
 
 void FileManager::SaveCustomerFile(vector<Customer>& customerList){
 	ofstream saveFile(CUSTOMERFILE);
@@ -67,11 +64,9 @@ void FileManager::SaveCustomerFile(vector<Customer>& customerList){
 		saveFile << customer.username << "|" << customer.password << "|" << customer.email << "|" << customer.phone
 		<< "|" << customer.securekey << "|" << customer.secureans << endl;
 	}
-	cout << "All data Saved..." << endl;
+	cout << "All Customer data Saved..." << endl;
 	saveFile.close();
 }
-
-
 
 
 //staff file
@@ -103,9 +98,7 @@ void FileManager::LoadStaffFile(vector<Staff>& staffList){
 	checkFile.close();
 }
 
-//void CustomerManager::LoadCustomerFile(vector<Customer>& ccustomerList){
-//	customerList = move(ccustomerList);
-//}
+
 
 void FileManager::SaveStaffFile(vector<Staff>& staffList){
 	ofstream saveFile(STAFFFILE);
@@ -121,10 +114,12 @@ void FileManager::SaveStaffFile(vector<Staff>& staffList){
 	for(const auto& staff : staffList){
 		cout << staff.username << "|" << staff.password << endl;
 	}
-	cout << "All data Saved..." << endl;
+	cout << "All Staff data Saved..." << endl;
 	saveFile.close();
 }
 
+
+//Book file
 void FileManager::LoadBookFile(vector<shared_ptr<Book>>& bookList){
 	ifstream checkFile(BOOKFILE);
 	cout << "Loading File..." << endl;
@@ -154,15 +149,15 @@ void FileManager::LoadBookFile(vector<shared_ptr<Book>>& bookList){
         getline(ss, temp, '|'); status = temp[0];
         getline(ss, temp, '|'); duration = stoi(temp);
 
-		if (duration == 60)
+		if (duration > 30 && duration <= 60)
 		{
             bookList.push_back(make_shared<NewBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
         }
-		else if (duration == 30)
+		else if (duration > 15 && duration <= 30)
 		{
             bookList.push_back(make_shared<SlightlyUsedBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
         }
-		else if (duration == 14)
+		else if (duration > 0  && duration <= 14)
 		{
             bookList.push_back(make_shared<HeavilyUsedBook>(isbn, type, name, author, publisher, date, desc, price, qty, status, duration));
         }
@@ -170,10 +165,10 @@ void FileManager::LoadBookFile(vector<shared_ptr<Book>>& bookList){
 	}
 
 	for (const auto& book : bookList) {
-    cout << book->ISBN << " | " << book->type << " | " << book->name << " | "
-         << book->author << " | " << book->publisher << " | " << book->publishdate
-         << " | " << book->description << " | " << book->rentalprice << " | "
-         << book->quantity << " | " << book->status << " | " << book->maxduration << " days" << endl;
+    cout << book->ISBN << "|" << book->type << "|" << book->name << "|"
+         << book->author << "|" << book->publisher << "|" << book->publishdate
+         << "|" << book->description << "|" << book->rentalprice << "|"
+         << book->quantity << "|" << book->status << "|" << book->maxduration << " days" << endl;
 }
 
 	checkFile.close();
@@ -183,6 +178,30 @@ Book::~Book() {
     cout << "Book::~Book()" << endl;
 }
 
+void FileManager::SaveBookFile(vector<shared_ptr<Book>>& bookList){
+	ofstream saveFile(BOOKFILE);
+	cout << "Saving File..." << endl;
+	if (!saveFile.is_open()) {
+        cout << "Error: Could not open customer file!" << endl;
+        return;
+    }
+    if (bookList.empty()) {
+        cout << "Error: Customer list is empty. Nothing to save!" << endl;
+        return;
+    }
+	for(const auto& book : bookList){
+		cout << book->ISBN << "|" << book->type << "|" << book->name << "|"
+         << book->author << "|" << book->publisher << "|" << book->publishdate
+         << "|" << book->description << "|" << book->rentalprice << "|"
+         << book->quantity << "|" << book->status << "|" << book->maxduration << endl;
+		saveFile << book->ISBN << "|" << book->type << "|" << book->name << "|"
+         << book->author << "|" << book->publisher << "|" << book->publishdate
+         << "|" << book->description << "|" << book->rentalprice << "|"
+         << book->quantity << "|" << book->status << "|" << book->maxduration << endl;
+	}
+	cout << "All Book data Saved..." << endl;
+	saveFile.close();
+}
 
 //Index Menu Show
 void ShowIndexMenu(){
@@ -207,7 +226,7 @@ void ShowMainMenu(){
 char readMenuSelection(int options){
 	string str;
 	cout << "readMenuSelection()" << endl;
-	
+	cout << "Enter : ";
 	while(true)
 	{
 		getline(cin, str);
@@ -222,7 +241,19 @@ char readMenuSelection(int options){
 	return toupper(str[0]);
 }
 
+int BookManager::readBookSelection(){
 
+	int input = 0;
+	while(true)
+	{
+		cin >> input;
+		if(input < 0 || input > bookList.size())
+		cout << "Wrong Input Please try again : ";
+		else break;
+	}
+	cout << input << endl;
+	return input;
+}
 
 bool checkEmptyInput(const string& check_input){
 	cout << "checkEmptyInput()" << endl;
@@ -232,8 +263,8 @@ bool checkEmptyInput(const string& check_input){
 
 
 
-void CustomerManager::CustomerLogin(){
-	
+void CustomerManager::CustomerLogin(StaffManager& staffManager, BookManager& bookManager){
+
 	bool quit = false;
 	while(!quit)
 	{
@@ -269,6 +300,8 @@ void CustomerManager::CustomerLogin(){
 					switch(key2)
 					{
 						case '1':
+							bookManager.bookBrowsing(1);
+							break;
 						case '2':
 							break;
 						case '3':
@@ -278,7 +311,6 @@ void CustomerManager::CustomerLogin(){
 						default: cout << "Default" << endl;
 					}
 
-					cout << key2 << endl;
 					if(key2 == '0') break;
 				}
 			}
@@ -317,7 +349,7 @@ void CustomerManager::AccLogin(){
 		cout << "Please Enter your Username : ";
 		
 		while(true && wrong_count<3)
-		{	
+		{
 			getline(cin, login_attr);
 			if(checkEmptyInput(login_attr))
 			{
@@ -925,5 +957,184 @@ void CustomerManager::delCustomer(const int& key){
 		}
 		else if(yorn == "N" || yorn == "n")	break;
 		else cout << "Wrong Input. Please try again!" << endl;
+	}
+}
+
+//Book Function
+
+void Book::display() const {
+    cout << "ISBN: " << ISBN << " "
+         << "Type: " << type << " "
+         << "Name: " << name << " "
+         << "Author: " << author << " "
+         << "Publisher: " << publisher << " "
+         << "Publish Date: " << publishdate << " "
+         << "Description: " << description << " "
+         << "Rental Price: " << rentalprice << " "
+         << "Quantity: " << quantity << " "
+         << "Status: " << status << " "
+         << "Max Duration: " << maxduration << " days" << endl;
+}
+
+void NewBook::display() const {
+	cout << "=== New Book ===" << endl;
+	Book::display();
+}
+void SlightlyUsedBook::display() const {
+	cout << "=== Slightly Used Book ===" << endl;
+	Book::display();
+}
+void HeavilyUsedBook::display() const {
+	cout << "=== Heavily Used Book ===" << endl;
+	Book::display();
+}
+
+void Book::bookBrowsing(){
+	HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	cout << setw(15) << left << getISBN() << setw(30) << left << getname() << setw(25) << left << getauthor()
+	 << setw(15) << right << fixed << setprecision(2) << getrentalprice();
+
+	char status = getstatus();
+
+	switch(status)
+	{
+		case '1':
+			SetConsoleTextAttribute(color,2);
+			cout << setw(15) << right << "#" << endl;
+			SetConsoleTextAttribute(color,7);
+			break;
+		case '2':
+			SetConsoleTextAttribute(color,6);
+			cout << setw(15) << right << "#" << endl;
+			SetConsoleTextAttribute(color,7);
+			break;
+		case '3':
+			SetConsoleTextAttribute(color,4);
+			cout << setw(15) << right << "#" << endl;
+			SetConsoleTextAttribute(color,7);
+			break;
+		default:
+			SetConsoleTextAttribute(color,1);
+			cout << setw(15) << right << "#" << endl;
+			SetConsoleTextAttribute(color,7);
+	}
+}
+
+void BookManager::bookBrowsing(int page) {
+	while(true)
+	{
+		cout << setw(5) << left << "No." << setw(15) << left << "ISBN" << setw(30) << left << "Book Name" << setw(25) << left << "Author"
+		 << setw(15) << right << "Price" << setw(15) << right << "Status" << endl;
+	//	 for (const auto& book : bookList)
+	//	 {
+	//	        book->bookBrowsing();
+	//	 }
+		for (size_t i = (page - 1) * 10; i < (page * 10) && i < bookList.size(); i++)
+		{
+			cout << setw(3) << right << i+1 << "  ";
+    		bookList[i]->bookBrowsing();
+		}
+
+
+		cout << "1. View Book" << endl;
+		cout << "2. Search Book" << endl;
+		cout << "3. Filter Book" << endl;
+		cout << "4. Sort Book" << endl;
+		cout << "5. Previous Page" << endl;
+		cout << "6. Next Page" << endl;
+		cout << "0. Back" << endl;
+
+		char key = readMenuSelection(6);
+		int key2 = 0;
+		switch(key)
+		{
+			case '1':
+				cout << "Enter the No. of book : ";
+				key2 = readBookSelection() - 1;
+				cout << page << endl;
+				cout << key2 << endl;
+				viewBook(key2);
+				break;
+			case '2':
+			case '3':
+			case '4': break;
+			case '5':
+				if(page == 1) cout << "Already First Page" << endl;
+				else page--;
+					break;
+			case '6':
+				if(page*10 >= bookList.size()) cout << "Already Last Page" << endl;
+				else page++;
+				break;
+			case '0': break;
+			default: cout << "Default" << endl;
+		}
+		if(key == '0') break;
+	}
+}
+
+void BookManager::viewBook(const int& key)
+{
+	while(true)
+	{
+		cout << key << endl;
+		cout << setw(17) << left << "ISBN" << ":" << bookList[key]->getISBN() << endl;
+		cout << setw(17) << left << "type" << ":" << bookList[key]->gettype() << endl;
+		cout << setw(17) << left << "name" << ":" << bookList[key]->getname() << endl;
+		cout << setw(17) << left << "author" << ":" << bookList[key]->getauthor() << endl;
+		cout << setw(17) << left << "publisher" << ":" << bookList[key]->getpublisher() << endl;
+		cout << setw(17) << left << "publishdate" << ":" << bookList[key]->getpublishdate() << endl;
+		cout << setw(17) << left << "description" << ":" << bookList[key]->getdescription() << endl;
+		cout << setw(17) << left << "rentalprice" << ":" << bookList[key]->getrentalprice() << endl;
+		cout << setw(17) << left << "quantity" << ":" << bookList[key]->getquantity() << endl;
+		cout << setw(17) << left << "status" << ":" << bookList[key]->getstatus() << endl;
+		cout << setw(17) << left << "maxduration" << ":" << bookList[key]->getmaxduration() << endl;
+		cout << endl << endl;
+		if(isCustomer)
+		{
+			cout << "1. Rent" << endl;
+			cout << "2. Add to shopping cart" << endl;
+			cout << "0. Back" << endl;
+
+			char key2 = readMenuSelection(2);
+			switch(key2){
+				case '1':
+					break;
+				case '2':
+					break;
+				case '0':
+					break;
+				default:
+					cout << "Default" << endl;
+			}
+		}
+//		else
+//		{
+//			cout << "1. Update customer details" << endl;
+//			cout << "2. View customer rental status" << endl;
+//			cout << "3. View customer rental history" << endl;
+//			cout << "4. Delete customer" << endl;
+//			cout << "0. Back" << endl;
+//
+//			char key2 = readMenuSelection(4);
+//			switch(key2){
+//				case '1':
+//					updateCustomer(key);
+//					continue;
+//				case '2':
+//				case '3':
+//					break;
+//				case '4':
+//					delCustomer(key);
+//					break;
+//				case '0':
+//					break;
+//				default:
+//					cout << "Default" << endl;
+//			}
+//		}
+
+		break;
 	}
 }
